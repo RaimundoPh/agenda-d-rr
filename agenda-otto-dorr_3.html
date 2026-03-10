@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Otto Dörr Zegers — Consulta Psiquiátrica</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1410; --cream: #f5f0e8; --warm: #e8dcc8;
+    --gold: #8b6914; --gold-light: #c9a84c; --rust: #7a3b1e;
+    --muted: #6b6055; --line: rgba(139,105,20,0.2);
+  }
+  html { font-size: 16px; scroll-behavior: smooth; }
+  body { background: var(--cream); color: var(--ink); font-family: 'DM Sans', sans-serif; font-weight: 300; min-height: 100vh; overflow-x: hidden; }
+
+  header {
+    background: var(--ink); color: var(--cream);
+    padding: 2.5rem 3rem; display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid var(--gold); position: relative; overflow: hidden;
+  }
+  header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 80% 50%, rgba(139,105,20,0.12) 0%, transparent 60%); }
+  .header-title { position: relative; z-index: 1; }
+  .header-pre { font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-light); margin-bottom: 0.4rem; }
+  .header-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 300; line-height: 1.1; letter-spacing: 0.02em; }
+  .header-name em { font-style: italic; color: var(--gold-light); }
+  .header-sub { font-size: 0.75rem; color: rgba(245,240,232,0.5); margin-top: 0.5rem; letter-spacing: 0.08em; }
+  .header-contact { position: relative; z-index: 1; text-align: right; font-size: 0.78rem; color: rgba(245,240,232,0.6); line-height: 1.8; }
+  .header-contact a { color: var(--gold-light); text-decoration: none; font-size: 0.9rem; font-weight: 400; display: block; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; display: grid; grid-template-columns: 1fr 410px; gap: 2.5rem; align-items: start; }
+
+  .panel { background: white; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; box-shadow: 0 2px 24px rgba(26,20,16,0.06); }
+  .panel-header { background: var(--ink); color: var(--cream); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+  .panel-title { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 400; letter-spacing: 0.05em; }
+  .panel-body { padding: 1.5rem; }
+
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem; }
+  .cal-nav-center { display: flex; align-items: center; gap: 0.5rem; }
+  .month-label { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 500; letter-spacing: 0.04em; cursor: pointer; color: var(--ink); border-bottom: 1px solid transparent; transition: border-color 0.2s, color 0.2s; padding-bottom: 1px; }
+  .month-label:hover { color: var(--gold); border-color: var(--gold); }
+  .year-label { font-size: 0.78rem; color: var(--muted); font-weight: 400; letter-spacing: 0.06em; }
+  .cal-arrow { background: none; border: 1px solid var(--line); width: 32px; height: 32px; border-radius: 2px; cursor: pointer; font-size: 0.9rem; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .cal-arrow:hover { border-color: var(--gold); color: var(--gold); background: rgba(139,105,20,0.04); }
+  .today-btn { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; background: none; border: 1px solid var(--line); border-radius: 2px; padding: 0.3rem 0.7rem; cursor: pointer; color: var(--muted); transition: all 0.2s; }
+  .today-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .annual-btn { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--gold); border: none; border-radius: 2px; padding: 0.3rem 0.8rem; cursor: pointer; color: white; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
+  .annual-btn:hover { background: var(--rust); }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--cream); border: 1px solid var(--line); border-top: 3px solid var(--gold); border-radius: 2px; padding: 2rem; width: min(92vw, 820px); max-height: 88vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(26,20,16,0.3); position: relative; animation: modalIn 0.25s ease; }
+  @keyframes modalIn { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: 1px solid var(--line); border-radius: 2px; width: 30px; height: 30px; cursor: pointer; font-size: 1rem; color: var(--muted); display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .modal-close:hover { border-color: var(--rust); color: var(--rust); }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 0.3rem; }
+  .modal-subtitle { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 1.5rem; }
+  .modal-year-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .modal-year-label { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; font-weight: 300; }
+  .annual-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.2rem; }
+  .mini-month-name { font-family: 'Cormorant Garamond', serif; font-size: 0.88rem; font-weight: 500; text-transform: capitalize; color: var(--ink); margin-bottom: 0.4rem; letter-spacing: 0.04em; }
+  .mini-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+  .mini-dow { font-size: 0.5rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-align: center; padding: 2px 0; }
+  .mini-day { font-size: 0.62rem; text-align: center; padding: 3px 1px; border-radius: 2px; cursor: default; color: var(--muted); transition: all 0.15s; }
+  .mini-day.available { color: var(--ink); font-weight: 500; cursor: pointer; }
+  .mini-day.available:hover { background: var(--gold); color: white; }
+  .mini-day.today-mark { background: var(--warm); color: var(--gold); font-weight: 500; }
+  .mini-day.selected-mark { background: var(--gold); color: white !important; }
+
+  .week-days-header { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 4px; }
+  .week-dow { text-align: center; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0.3rem 0; }
+  .week-dow.active-col { color: var(--gold); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; border-radius: 2px; cursor: default; color: #ccc; transition: all 0.15s; }
+  .cal-day.in-month { color: var(--muted); }
+  .cal-day.available { color: var(--ink); cursor: pointer; background: rgba(139,105,20,0.04); border: 1px solid var(--line); }
+  .cal-day.available:hover { background: var(--gold); color: white; border-color: var(--gold); transform: scale(1.06); }
+  .cal-day.today { background: var(--warm); color: var(--gold); font-weight: 500; border: 1px solid rgba(139,105,20,0.3); }
+  .cal-day.selected { background: var(--gold) !important; color: white !important; border-color: var(--gold) !important; font-weight: 500; }
+  .cal-day.past { color: #ddd; background: none; cursor: default; }
+
+  .slots-section { margin-top: 1.5rem; }
+  .slots-date { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 500; color: var(--ink); margin-bottom: 0.8rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--line); text-transform: capitalize; }
+  .slots-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .slot { border: 1px solid var(--line); border-radius: 2px; padding: 0.7rem; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .slot:hover { border-color: var(--gold); background: rgba(139,105,20,0.04); }
+  .slot.selected { border-color: var(--gold); background: var(--gold); color: white; }
+  .slot-time { font-size: 0.88rem; font-weight: 500; }
+  .slot-dur { font-size: 0.65rem; color: inherit; opacity: 0.7; margin-top: 2px; letter-spacing: 0.06em; }
+
+  .summary-section { margin-bottom: 1rem; }
+  .summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.4rem 0; border-bottom: 1px solid var(--line); font-size: 0.8rem; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-label { color: var(--muted); letter-spacing: 0.04em; }
+  .summary-val { font-weight: 500; color: var(--ink); }
+  .price-val { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); font-weight: 600; }
+
+  .form-group { margin-bottom: 0.7rem; }
+  .form-label { display: block; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.28rem; }
+  .form-label .req { color: var(--rust); }
+  .form-label .hint { color: var(--gold); font-size: 0.58rem; text-transform: none; letter-spacing: 0; }
+  .form-input { width: 100%; border: 1px solid var(--line); border-radius: 2px; padding: 0.58rem 0.75rem; font-size: 0.82rem; font-family: 'DM Sans', sans-serif; color: var(--ink); background: white; transition: border-color 0.2s; outline: none; }
+  .form-input:focus { border-color: var(--gold); }
+  .form-input::placeholder { color: #ccc; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+
+  .modal-toggle { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .toggle-btn { flex: 1; padding: 0.6rem; border: 1px solid var(--line); border-radius: 2px; background: white; cursor: pointer; font-size: 0.8rem; font-family: 'DM Sans', sans-serif; color: var(--muted); transition: all 0.2s; }
+  .toggle-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .toggle-btn.active { border-color: var(--gold); background: var(--gold); color: white; font-weight: 500; }
+  .address-note { font-size: 0.73rem; color: var(--muted); background: var(--warm); border: 1px solid var(--line); border-radius: 2px; padding: 0.5rem 0.8rem; margin-top: 0.3rem; }
+
+  .confirm-btn { width: 100%; padding: 0.9rem; background: var(--gold); color: white; border: none; border-radius: 2px; font-size: 0.85rem; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 1rem; letter-spacing: 0.03em; }
+  .confirm-btn:hover { background: var(--rust); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(139,105,20,0.25); }
+
+  .note { font-size: 0.65rem; color: var(--muted); text-align: center; margin-top: 0.6rem; line-height: 1.5; }
+
+  .success-box { display: none; text-align: center; padding: 1.2rem; background: #f0faf4; border: 1px solid #a8d5b5; border-radius: 2px; margin-top: 1rem; }
+  .success-box.show { display: block; }
+  .success-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .success-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 500; color: #2d6a4f; margin-bottom: 0.4rem; }
+  .success-text { font-size: 0.76rem; color: #52796f; line-height: 1.6; }
+
+  .divider-note { text-align: center; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin: 1rem 0 0.6rem; position: relative; }
+  .divider-note::before, .divider-note::after { content: ''; position: absolute; top: 50%; width: 22%; height: 1px; background: var(--line); }
+  .divider-note::before { left: 0; } .divider-note::after { right: 0; }
+  .alt-contacts { display: flex; flex-direction: column; gap: 0.4rem; }
+  .alt-contact-btn { display: block; text-align: center; padding: 0.55rem; border: 1px solid var(--line); border-radius: 2px; font-size: 0.75rem; color: var(--muted); text-decoration: none; font-family: 'DM Sans', sans-serif; transition: all 0.2s; background: white; }
+  .alt-contact-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .alt-contact-btn.last-resort { border-style: dashed; font-size: 0.72rem; color: #aaa; display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
+  .alt-contact-btn.last-resort:hover { border-color: var(--rust); color: var(--rust); }
+  .lr-badge { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; background: #f5e6e0; color: var(--rust); padding: 0.15rem 0.4rem; border-radius: 2px; border: 1px solid rgba(122,59,30,0.2); }
+
+  .info-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.5rem; }
+  .tag { font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--line); border-radius: 2px; padding: 0.25rem 0.6rem; color: var(--muted); }
+  .tag.gold { border-color: rgba(139,105,20,0.4); color: var(--gold); }
+
+  .empty-state { text-align: center; padding: 1.5rem; color: var(--muted); font-size: 0.82rem; border: 1px dashed var(--line); border-radius: 2px; }
+  .empty-state-icon { font-size: 1.5rem; margin-bottom: 0.5rem; opacity: 0.4; }
+
+  .sending-overlay { display: none; position: fixed; inset: 0; background: rgba(26,20,16,0.6); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+  .sending-overlay.show { display: flex; }
+  .sending-box { background: white; border-radius: 4px; padding: 2rem 2.5rem; text-align: center; border-top: 3px solid var(--gold); }
+  .sending-spinner { width: 36px; height: 36px; border: 3px solid var(--line); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .sending-text { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--ink); }
+
+  @media (max-width: 780px) {
+    main { grid-template-columns: 1fr; }
+    header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .header-contact { text-align: left; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-title">
+    <div class="header-pre">Consulta Psiquiátrica</div>
+    <h1 class="header-name">Dr. Otto <em>Dörr</em> Zegers</h1>
+    <div class="header-sub">Psiquiatría · Psicoterapia · Premio Nacional de Medicina</div>
+  </div>
+  <div class="header-contact">
+    <span>Secretaria</span>
+    <a href="tel:+56965995222">+56 9 6599 5222</a>
+    <span>Teléfono fijo</span>
+    <a href="tel:+56224362521">22 436 2521</a>
+  </div>
+</header>
+
+<main>
+  <!-- CALENDARIO -->
+  <div>
+    <div class="info-tags">
+      <span class="tag">Lun · Mar · Mié · Jue</span>
+      <span class="tag gold">60 minutos</span>
+      <span class="tag gold">$120.000 CLP</span>
+      <span class="tag">16:00 – 19:00 hrs</span>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Seleccionar fecha</span>
+        <button class="annual-btn" onclick="openAnnual()">📅 Vista anual</button>
+      </div>
+      <div class="panel-body">
+        <div class="cal-nav">
+          <button class="cal-arrow" onclick="changeMonth(-1)">‹</button>
+          <div class="cal-nav-center">
+            <span class="month-label" id="monthLabel" onclick="openAnnual()"></span>
+            <span class="year-label" id="yearLabel"></span>
+          </div>
+          <button class="cal-arrow" onclick="changeMonth(1)">›</button>
+        </div>
+        <button class="today-btn" onclick="goToday()" style="margin-bottom:1rem">Hoy</button>
+        <div class="week-days-header" id="weekDowHeader"></div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="slots-section" id="slotsSection" style="display:none">
+          <div class="slots-date" id="slotsDateLabel"></div>
+          <div class="slots-grid" id="slotsGrid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Datos de la reserva</span>
+      </div>
+      <div class="panel-body">
+
+        <div id="emptyBooking" class="empty-state">
+          <div class="empty-state-icon">🗓</div>
+          Selecciona una fecha y hora<br>para continuar
+        </div>
+
+        <div id="bookingForm" style="display:none">
+          <div class="summary-section">
+            <div class="summary-row"><span class="summary-label">Fecha</span><span class="summary-val" id="sumDate">—</span></div>
+            <div class="summary-row"><span class="summary-label">Hora</span><span class="summary-val" id="sumTime">—</span></div>
+            <div class="summary-row"><span class="summary-label">Duración</span><span class="summary-val">60 minutos</span></div>
+            <div class="summary-row"><span class="summary-label">Valor</span><span class="summary-val price-val">$120.000 CLP</span></div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Modalidad</label>
+            <div class="modal-toggle">
+              <button class="toggle-btn active" id="btnOnline" onclick="setModalidad('online')">💻 Online</button>
+              <button class="toggle-btn" id="btnPresencial" onclick="setModalidad('presencial')">🏥 Presencial</button>
+            </div>
+            <div id="addressNote" style="display:none" class="address-note">📍 Av. Charles Hamilton 10286, Las Condes</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nombre completo <span class="req">*</span></label>
+            <input class="form-input" id="fName" type="text" placeholder="Nombre y apellidos">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">RUT <span class="req">*</span></label>
+              <input class="form-input" id="fRut" type="text" placeholder="12.345.678-9">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono <span class="req">*</span></label>
+              <input class="form-input" id="fPhone" type="tel" placeholder="+56 9 ...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Correo electrónico <span class="req">*</span> <span class="hint">— necesario para recetas online</span></label>
+            <input class="form-input" id="fEmail" type="email" placeholder="correo@ejemplo.com">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Dirección <span class="req">*</span></label>
+              <input class="form-input" id="fAddress" type="text" placeholder="Calle y número">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Comuna <span class="req">*</span></label>
+              <input class="form-input" id="fComuna" type="text" placeholder="Su comuna">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Motivo de consulta (opcional)</label>
+            <input class="form-input" id="fReason" type="text" placeholder="Breve descripción">
+          </div>
+
+          <button class="confirm-btn" onclick="sendEmail()" id="sendBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,12 2,6"/></svg>
+            Solicitar hora
+          </button>
+          <p class="note">Se enviará un WhatsApp a la secretaria con todos sus datos.<br>También recibirá un correo de confirmación en su email.</p>
+
+          <div class="success-box" id="successBox">
+            <div class="success-icon">✅</div>
+            <div class="success-title">¡Correo listo para enviar!</div>
+            <div class="success-text" id="successText"></div>
+          </div>
+
+          <div class="divider-note">¿Necesita ayuda adicional?</div>
+          <div class="alt-contacts">
+            <a href="tel:+56965995222" class="alt-contact-btn">📱 Secretaria: +56 9 6599 5222</a>
+            <a href="tel:+56224362521" class="alt-contact-btn">📞 Fijo: 22 436 2521</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL ANUAL -->
+<div class="modal-overlay" id="annualModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAnnual()">✕</button>
+    <div class="modal-title">Calendario Anual</div>
+    <div class="modal-subtitle">SELECCIONA CUALQUIER FECHA DISPONIBLE</div>
+    <div class="modal-year-nav">
+      <button class="cal-arrow" onclick="changeAnnualYear(-1)">‹</button>
+      <span class="modal-year-label" id="annualYearLabel"></span>
+      <button class="cal-arrow" onclick="changeAnnualYear(1)">›</button>
+    </div>
+    <div class="annual-grid" id="annualGrid"></div>
+  </div>
+</div>
+
+<!-- SENDING OVERLAY -->
+<div class="sending-overlay" id="sendingOverlay">
+  <div class="sending-box">
+    <div class="sending-spinner"></div>
+    <div class="sending-text">Preparando correo…</div>
+  </div>
+</div>
+
+<script>
+const AVAILABLE_DAYS = [1,2,3,4];
+const SLOTS = ['16:00','17:00','18:00','19:00'];
+const MONTHS_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const DOCTOR_EMAIL = 'odoerrz@gmail.com';
+
+let currentDate = new Date();
+let currentView = { year: currentDate.getFullYear(), month: currentDate.getMonth() };
+let annualYear = currentDate.getFullYear();
+let selectedDate = null;
+let selectedSlot = null;
+let selectedModalidad = 'online';
+
+function setModalidad(m) {
+  selectedModalidad = m;
+  document.getElementById('btnOnline').classList.toggle('active', m === 'online');
+  document.getElementById('btnPresencial').classList.toggle('active', m === 'presencial');
+  document.getElementById('addressNote').style.display = m === 'presencial' ? 'block' : 'none';
+}
+
+function isAvailable(date) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  if (date < today) return false;
+  return AVAILABLE_DAYS.includes(date.getDay());
+}
+
+function buildCalendar() {
+  const { year, month } = currentView;
+  document.getElementById('monthLabel').textContent = MONTHS_ES[month];
+  document.getElementById('yearLabel').textContent = year;
+  const dowHeader = document.getElementById('weekDowHeader');
+  dowHeader.innerHTML = '';
+  DAYS_ES.forEach((d,i) => {
+    const el = document.createElement('div');
+    el.className = 'week-dow' + (AVAILABLE_DAYS.includes(i) ? ' active-col' : '');
+    el.textContent = d; dowHeader.appendChild(el);
+  });
+  const grid = document.getElementById('calGrid'); grid.innerHTML = '';
+  const first = new Date(year, month, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < startDow; i++) { const el = document.createElement('div'); el.className = 'cal-day'; grid.appendChild(el); }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, month, d);
+    const el = document.createElement('div');
+    const avail = isAvailable(date);
+    const isToday = date.getTime() === today.getTime();
+    const isSel = selectedDate && date.getTime() === selectedDate.getTime();
+    el.className = 'cal-day in-month' + (avail ? ' available' : (date < today ? ' past' : '')) + (isToday && !isSel ? ' today' : '') + (isSel ? ' selected' : '');
+    el.textContent = d;
+    if (avail) el.onclick = () => selectDate(date);
+    grid.appendChild(el);
+  }
+  updateSlots();
+}
+
+function selectDate(date) {
+  selectedDate = date; selectedSlot = null; buildCalendar(); updateBookingForm();
+}
+
+function updateSlots() {
+  const sec = document.getElementById('slotsSection');
+  if (!selectedDate || selectedDate.getMonth() !== currentView.month || selectedDate.getFullYear() !== currentView.year) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  const dow = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][selectedDate.getDay()];
+  document.getElementById('slotsDateLabel').textContent = `${dow} ${selectedDate.getDate()} de ${MONTHS_ES[selectedDate.getMonth()]}`;
+  const grid = document.getElementById('slotsGrid'); grid.innerHTML = '';
+  SLOTS.forEach(slot => {
+    const el = document.createElement('div');
+    el.className = 'slot' + (selectedSlot === slot ? ' selected' : '');
+    el.innerHTML = `<div class="slot-time">${slot} hrs</div><div class="slot-dur">60 min · $120.000</div>`;
+    el.onclick = () => { selectedSlot = slot; updateSlots(); updateBookingForm(); };
+    grid.appendChild(el);
+  });
+}
+
+function updateBookingForm() {
+  const empty = document.getElementById('emptyBooking');
+  const form = document.getElementById('bookingForm');
+  if (!selectedDate || !selectedSlot) { empty.style.display='block'; form.style.display='none'; return; }
+  empty.style.display='none'; form.style.display='block';
+  document.getElementById('successBox').classList.remove('show');
+  document.getElementById('sendBtn').style.display = 'flex';
+  const dow = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][selectedDate.getDay()];
+  document.getElementById('sumDate').textContent = `${dow} ${selectedDate.getDate()} de ${MONTHS_ES[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`;
+  document.getElementById('sumTime').textContent = `${selectedSlot} hrs`;
+}
+
+function changeMonth(dir) {
+  currentView.month += dir;
+  if (currentView.month > 11) { currentView.month = 0; currentView.year++; }
+  if (currentView.month < 0) { currentView.month = 11; currentView.year--; }
+  buildCalendar();
+}
+
+function goToday() {
+  const t = new Date(); currentView = { year: t.getFullYear(), month: t.getMonth() }; buildCalendar();
+}
+
+function openAnnual() { annualYear = currentView.year; buildAnnual(); document.getElementById('annualModal').classList.add('open'); }
+function closeAnnual() { document.getElementById('annualModal').classList.remove('open'); }
+function changeAnnualYear(dir) { annualYear += dir; buildAnnual(); }
+
+function buildAnnual() {
+  document.getElementById('annualYearLabel').textContent = annualYear;
+  const grid = document.getElementById('annualGrid'); grid.innerHTML = '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let m = 0; m < 12; m++) {
+    const block = document.createElement('div'); block.className = 'mini-month';
+    const nameEl = document.createElement('div'); nameEl.className = 'mini-month-name'; nameEl.textContent = MONTHS_ES[m]; block.appendChild(nameEl);
+    const miniGrid = document.createElement('div'); miniGrid.className = 'mini-grid';
+    DAYS_ES.forEach(d => { const h = document.createElement('div'); h.className = 'mini-dow'; h.textContent = d[0]; miniGrid.appendChild(h); });
+    const first = new Date(annualYear, m, 1); const startDow = first.getDay(); const daysInMonth = new Date(annualYear, m+1, 0).getDate();
+    for (let i = 0; i < startDow; i++) { const el = document.createElement('div'); el.className = 'mini-day'; miniGrid.appendChild(el); }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(annualYear, m, d);
+      const avail = isAvailable(date);
+      const isToday = date.getTime() === today.getTime();
+      const isSel = selectedDate && date.getTime() === selectedDate.getTime();
+      const el = document.createElement('div');
+      el.className = 'mini-day' + (avail ? ' available' : '') + (isToday && !isSel ? ' today-mark' : '') + (isSel ? ' selected-mark' : '');
+      el.textContent = d;
+      if (avail) { el.onclick = () => { selectedDate = date; selectedSlot = null; currentView = { year: annualYear, month: m }; buildCalendar(); updateBookingForm(); closeAnnual(); }; }
+      miniGrid.appendChild(el);
+    }
+    block.appendChild(miniGrid); grid.appendChild(block);
+  }
+}
+
+function sendEmail() {
+  const name    = document.getElementById('fName').value.trim();
+  const rut     = document.getElementById('fRut').value.trim();
+  const phone   = document.getElementById('fPhone').value.trim();
+  const email   = document.getElementById('fEmail').value.trim();
+  const address = document.getElementById('fAddress').value.trim();
+  const comuna  = document.getElementById('fComuna').value.trim();
+  const reason  = document.getElementById('fReason').value.trim();
+
+  if (!name)    { alert('Por favor ingrese su nombre completo.'); return; }
+  if (!rut)     { alert('Por favor ingrese su RUT.'); return; }
+  if (!phone)   { alert('Por favor ingrese su teléfono.'); return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Por favor ingrese un correo electrónico válido. Es necesario para enviarle las recetas.'); return; }
+  if (!address) { alert('Por favor ingrese su dirección.'); return; }
+  if (!comuna)  { alert('Por favor ingrese su comuna.'); return; }
+
+  const dow = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][selectedDate.getDay()];
+  const dateStr = `${dow} ${selectedDate.getDate()} de ${MONTHS_ES[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`;
+  const modalidadStr = selectedModalidad === 'presencial'
+    ? 'Presencial — Av. Charles Hamilton 10286, Las Condes'
+    : 'Online (videollamada)';
+
+  const waMsg =
+`Hola, le escribo para solicitar una hora con el Dr. Dörr.
+
+*Nombre:* ${name}
+*RUT:* ${rut}
+*Teléfono:* ${phone}
+*Correo:* ${email}
+*Dirección:* ${address}, ${comuna}
+
+*Fecha solicitada:* ${dateStr}
+*Hora:* ${selectedSlot} hrs
+*Modalidad:* ${modalidadStr}
+*Duración:* 60 minutos
+*Valor:* $120.000 CLP${reason ? `\n*Motivo:* ${reason}` : ''}
+
+Quedo atento/a a su confirmación. Muchas gracias.`;
+
+  document.getElementById('sendingOverlay').classList.add('show');
+  setTimeout(() => {
+    document.getElementById('sendingOverlay').classList.remove('show');
+
+    // WhatsApp a secretaria
+    const waUrl = `https://wa.me/56965995222?text=${encodeURIComponent(waMsg)}`;
+    window.open(waUrl, '_blank');
+
+    // Correo de confirmación al paciente
+    const subject = `Confirmación solicitud de hora — Dr. Dörr — ${dateStr} ${selectedSlot} hrs`;
+    const mailBody =
+`Estimado/a ${name},
+
+Hemos recibido su solicitud de consulta con el Dr. Otto Dörr Zegers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+RESUMEN DE SU SOLICITUD
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Fecha:       ${dateStr}
+Hora:        ${selectedSlot} hrs
+Modalidad:   ${modalidadStr}
+Duración:    60 minutos
+Valor:       $120.000 CLP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━
+La secretaria se pondrá en contacto con usted a la brevedad para confirmar su hora.
+
+Ante cualquier consulta puede comunicarse al: +56 9 6599 5222
+
+Dr. Otto Dörr Zegers
+Consulta Psiquiátrica`;
+
+    setTimeout(() => {
+      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(mailBody)}`;
+    }, 1200);
+
+    document.getElementById('sendBtn').style.display = 'none';
+    const sb = document.getElementById('successBox');
+    sb.classList.add('show');
+    document.getElementById('successText').innerHTML =
+      `✅ Se abrió WhatsApp para notificar a la secretaria.<br><br>
+       📧 En un momento se abrirá su correo con la confirmación para <strong>${email}</strong>.<br><br>
+       La secretaria confirmará su hora a la brevedad.`;
+  }, 800);
+}
+
+document.getElementById('annualModal').addEventListener('click', function(e) { if (e.target === this) closeAnnual(); });
+buildCalendar();
+</script>
+</body>
+</html>
